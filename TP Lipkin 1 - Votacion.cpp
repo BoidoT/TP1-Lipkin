@@ -32,6 +32,7 @@ void poblarListas(listas arrListas[], int cListas);
 void mostrarListas(listas arrListas[], int cListas);
 int pedirCantidadListas();
 int pedirCantidadVotantes();
+
 void poblarVotantes(votante Vots[], int cVotantes, int cListas);
 void mostrarVotantes (votante Vots[], int cVotantes);
 void analizarVotantes (votante Vots[], listas arrListas[], int cVotantes, int cListas, int *vBlanco, int *vNulo); 
@@ -59,6 +60,16 @@ int main()
     return 0;
 }
 
+/** @brief Completa las listas con input del usuario
+ * 
+ *  @param[in,out] Vots Array de Votantes
+ *  @param[in,out] arrListas Array de Listas
+ *  @param[in] cVotantes Cantidad de Votantes
+ *  @param[in] cListas Cantidad de listas
+ *  @param[out] vBlanco Puntero a contador de Votos en blanco
+ *  @param[out] vNulo Puntero a contador de Votos Nulos
+ *  @return none
+ */
 void analizarVotantes(votante Vots[], listas arrListas[], int cVotantes, int cListas, int *vBlanco, int *vNulo){
 	int votoNormalizado;
 	int votosValidos;
@@ -82,6 +93,13 @@ void analizarVotantes(votante Vots[], listas arrListas[], int cVotantes, int cLi
 		}
 	}
 }
+
+/** @brief Pide la cantidad de Listas al usuario
+ * 
+ *  @param none
+ * 
+ *  @return Int.
+ */
 int pedirCantidadListas(){
 	int cListas = 0;
 	cout<<"Ingrese cantidad de Listas: ";
@@ -90,6 +108,12 @@ int pedirCantidadListas(){
 	return cListas;
 }
 
+/** @brief Pide la cantidaad de Votantes al usuario
+ * 
+ *  @param none
+ * 
+ *  @return Int.
+ */
 int pedirCantidadVotantes(){
 	int cVotantes = 0;
 	cout<<"Ingrese cantidad de Votantes: ";
@@ -98,6 +122,13 @@ int pedirCantidadVotantes(){
 	return cVotantes;
 }
 
+/** @brief Completa las listas con input del usuario
+ * 
+ *  @param[in,out] arrListas Array de listas
+ *  @param[in] cListas Cantidad de listas
+ * 
+ *  @return none
+ */
 void poblarListas(listas arrListas[], int cListas)
 {
 	
@@ -114,6 +145,14 @@ void poblarListas(listas arrListas[], int cListas)
 	}
 }
 
+/** @brief Completa las listas de Votantes con input del usuario
+ * 
+ *  @param[in,out] arrVot Array de Votantes
+ *  @param[in] cVotantes Cantidad de Votantes
+ *  @param[in] cListas Cantidad de Listas
+ * 
+ *  @return none
+ */
 void poblarVotantes(votante arrVot[], int cVotantes, int cListas)
 {
 	for(int i=0; i<cVotantes;i++){ //RECORRO LAS LISTAS PARA COMPLETARLAS
@@ -127,6 +166,13 @@ void poblarVotantes(votante arrVot[], int cVotantes, int cListas)
 	return;
 }
 
+/** @brief Muestra de las listas en pantalla
+ * 
+ *  @param[in] arrListas Array de Listas
+ *  @param[in] cListas Cantidad de Listas
+ * 
+ *  @return none
+ */
 void mostrarListas(listas arrListas[], int cListas)
 {
 	for(int i=0; i<cListas;i++){ //RECORRO LAS LISTAS PARA MOSTRARLAS
@@ -148,6 +194,15 @@ void mostrarVotantes(votante Vots[], int cVotantes)
 	
 }
 
+/** @brief Calcula las bancas para cada lista,
+ * 		   en base a los input de las demas funciones
+ * 
+ *  @param[in] arrListas Array de Listas
+ *  @param[in] cListas Cantidad de Listas
+ *  @param[in,out] arrBancasPorLista Array de bancas para cada lista.
+ * 
+ *  @return none
+ */
 void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2])
 {
 	int flag=0;
@@ -180,6 +235,9 @@ void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2])
 		}				
 	}
 //Deberia imprimir algo aca para ver si esta bosta funciona, al primer intento;
+
+//Hacer esto bien.
+
 cout<<"Bancas Por Lista: "<<endl;
 		for  (int a=0;a<2;a++)
 		{
