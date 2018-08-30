@@ -40,14 +40,24 @@ void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2])
 
 int main() 
 {
+	//Pido la cantidad de Listas, y genero el Array.
 	int cantidadListas = pedirCantidadListas();
 	listas arrListas[cantidadListas];
+	//Lleno la lista con inputs
 	poblarListas(arrListas, cantidadListas);
+	//Muestro las listas
 	mostrarListas(arrListas, cantidadListas);
+
+	//votantes:
+	//Pido la cantidad de votantes y genero un array de votantes.
 	int cantidadVotantes = pedirCantidadVotantes();
 	votante arrVot[cantidadVotantes];
+	//Lleno los votantes con los inputs
 	poblarVotantes(arrVot, cantidadVotantes, cantidadListas);
+	//Muestro
 	mostrarVotantes(arrVot, cantidadVotantes);
+
+	//Procesar Votos
 	int votBlanco=0;
 	int votNulo=0;
 	analizarVotantes(arrVot, arrListas, cantidadVotantes, cantidadListas, &votBlanco, &votNulo);
@@ -185,6 +195,13 @@ void mostrarListas(listas arrListas[], int cListas)
 	return;
 }
 
+/** @brief Muestra de las listas en pantalla
+ * 
+ *  @param[in] Vots Array de Votantes
+ *  @param[in] cVotantes Cantidad de Votantes
+ * 
+ *  @return none
+ */
 void mostrarVotantes(votante Vots[], int cVotantes)
 {
 	for(int i=0; i<cVotantes;i++){ //RECORRO VOTANTES RARLAS
@@ -239,12 +256,14 @@ void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2])
 //Hacer esto bien.
 
 cout<<"Bancas Por Lista: "<<endl;
+cout<<"Lista\t\tC. Votos\t\t\%Votos Validos\t\tPrimera Banca\t\tSegunda Banca\t\tTercera Banca\t\tCuarta Banca\t\tQuinta Banca"<<endl;
+
 		for  (int a=0;a<2;a++)
 		{
 			for (int b=0;b<CANTIDADBANCAS;b++)
 			{
 				
-				cout<<"Banca["<<a<<"]["<<b<<"]: "<<arrBancasPorLista[b][a]<<endl;
+				printf("Lista\t\tC. Votos\t\t\%Votos Validos\t\t%11d\t\t%11d\t\t\n",a,b);
 			}
 		}
 }
