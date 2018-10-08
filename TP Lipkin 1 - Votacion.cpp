@@ -9,6 +9,8 @@ using namespace std;
 #define CANTIDADCANDIDATOS 2
 #define CANTIDADBANCAS 5
 //#define CANTIDADLISTAS 5
+//TESTVOTOSNULOS Define una cantidad de listas extra para que la funcion de test pueda votar en nulo.
+#define TESTVOTOSNULOS 3
 
 /* DEFINICION DE STRUCTS */
 struct candidato{
@@ -349,7 +351,7 @@ int test_poblarVotantes(votante arrVot[], int cVotantes, int cListas)
 			arrVot[i].sexo='F';
 		}
 		arrVot[i].edad = (rand()%80) +16;
-		arrVot[i].voto = rand() % (cListas+1);
+		arrVot[i].voto = rand() % (cListas+1+TESTVOTOSNULOS);
 	}
 	return 0;
 }
