@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstring>
+#include <time.h>
 
 using namespace std;
 
@@ -22,7 +23,7 @@ struct listas{
 	int cantVotos, cantidadBancasAsignadas, porcenVotos;
 	int bancas[CANTIDADBANCAS];
 };
-
+ 
 struct votante{
 	char sexo;
 	int edad;
@@ -39,6 +40,9 @@ void poblarVotantes(votante Vots[], int cVotantes, int cListas);
 void mostrarVotantes (votante Vots[], int cVotantes);
 void analizarVotantes (votante Vots[], listas arrListas[], int cVotantes, int cListas, int *vBlanco, int *vNulo); 
 void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2], int vBlanco, int vNulo);
+
+void ordenarListas(listas arrListas[], int cListas); //Una vez que llamo esta funcion, pierdo el orden por defecto
+
 void test_poblarListas(listas arrListas[], int cListas);
 int test_poblarVotantes(votante arrVot[], int cVotantes, int cListas);
 
@@ -46,6 +50,7 @@ int menu (void);
 
 int main() 
 {
+	srand(time(NULL));
 	//Pido la cantidad de Listas, y genero el Array.
 	int cantidadListas = pedirCantidadListas();
 	listas arrListas[cantidadListas];
@@ -79,7 +84,6 @@ int main()
 			test_poblarListas(arrListas, cantidadListas);
 			//Muestro las listas
 			mostrarListas(arrListas, cantidadListas);
-			//TODO: test_poblarVotantes
 			test_poblarVotantes(arrVot, cantidadVotantes, cantidadListas);
 			//Muestro
 			mostrarVotantes(arrVot, cantidadVotantes);
@@ -165,7 +169,7 @@ int pedirCantidadListas(){
 	return cListas;
 }
 
-/** @brief Pide la cantidaad de Votantes al usuario
+/** @brief Pide la cantidad de Votantes al usuario
  * 
  *  @param none
  * 
@@ -279,12 +283,15 @@ void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2],
 			}
 		}
 
+//Aca deberia ordenar las listas.
+ordenarListas(arrListas, cListas);
+
 cout<<"Bancas Por Lista: "<<endl;
 cout<<"Lista\t\tC. Votos\t\t\%Votos Validos\t\tPrimera Banca\t\tSegunda Banca\t\tTercera Banca\t\tCuarta Banca\t\tQuinta Banca"<<endl;
 
 		for  (int a=0;a<cListas;a++)
 		{
-			printf("%s\t\t%d\t\t\t%d\%",arrListas[a].nombreLista,arrListas[a].cantVotos, arrListas[a].porcenVotos);
+			printf("%d - %s\t\t%d\t\t\t%d\%",arrListas[a].numLista, arrListas[a].nombreLista,arrListas[a].cantVotos, arrListas[a].porcenVotos);
 			//Ahora las 5 bancas, no?
 			for (int b=0;b<CANTIDADBANCAS;b++)
 			{
@@ -345,4 +352,27 @@ int test_poblarVotantes(votante arrVot[], int cVotantes, int cListas)
 		arrVot[i].voto = rand() % (cListas+1);
 	}
 	return 0;
+}
+/** @brief Ordena el array de Listas (BubbleSort), por cantidad de votos
+ * 
+ *  @param[in,out] arrListas Array de Listas
+ *  @param[in] cListas Cantidad de Listas
+ * 
+ *  @return 0
+ */
+void ordenarListas(listas arrListas[], int cListas){
+	listas temp;
+	for(int i=0;i<cListas;i++)
+	{
+		for(int j=i+1;j<cListas;j++)
+		{
+			if(arrListas[i].cantVotos < arrListas[j].cantVotos)
+			{
+				temp = arrListas[i];
+				arrListas[i] = arrListas[j];
+				arrListas[j] = temp;
+			}
+		}
+	}
+
 }
