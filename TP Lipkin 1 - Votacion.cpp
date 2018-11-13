@@ -83,6 +83,7 @@ int main()
 void analizarVotantes(votante Vots[], listas arrListas[], int cVotantes, int cListas, int *vBlanco, int *vNulo){
 	int votoNormalizado;
 	int votosValidos;
+	
 	for(int i=0; i<cVotantes; i++){
 		if(Vots[i].voto==0){
 			vBlanco++;
