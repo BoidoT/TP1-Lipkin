@@ -1,11 +1,16 @@
 #include <iostream>
 #include <cmath>
+#include <cstring>
+#include <time.h>
+
 using namespace std;
 
 /* DEFINICION DE CONSTANTES */
 #define CANTIDADCANDIDATOS 2
 #define CANTIDADBANCAS 5
 //#define CANTIDADLISTAS 5
+//TESTVOTOSNULOS Define una cantidad de listas extra para que la funcion de test pueda votar en nulo.
+#define TESTVOTOSNULOS 3
 
 /* DEFINICION DE STRUCTS */
 struct candidato{
@@ -20,7 +25,7 @@ struct listas{
 	int cantVotos, cantidadBancasAsignadas, porcenVotos;
 	int bancas[CANTIDADBANCAS];
 };
-
+ 
 struct votante{
 	char sexo;
 	int edad;
@@ -36,38 +41,86 @@ int pedirCantidadVotantes();
 void poblarVotantes(votante Vots[], int cVotantes, int cListas);
 void mostrarVotantes (votante Vots[], int cVotantes);
 void analizarVotantes (votante Vots[], listas arrListas[], int cVotantes, int cListas, int *vBlanco, int *vNulo); 
-void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2]);
+void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2], int vBlanco, int vNulo);
+
+void ordenarListas(listas arrListas[], int cListas); //Una vez que llamo esta funcion, pierdo el orden por defecto
+
+void test_poblarListas(listas arrListas[], int cListas);
+int test_poblarVotantes(votante arrVot[], int cVotantes, int cListas);
+
+int menu (void);
 
 int main() 
 {
+	srand(time(NULL));
 	//Pido la cantidad de Listas, y genero el Array.
 	int cantidadListas = pedirCantidadListas();
 	listas arrListas[cantidadListas];
-	//Lleno la lista con inputs
-	poblarListas(arrListas, cantidadListas);
-	//Muestro las listas
-	mostrarListas(arrListas, cantidadListas);
-
 	//votantes:
 	//Pido la cantidad de votantes y genero un array de votantes.
 	int cantidadVotantes = pedirCantidadVotantes();
 	votante arrVot[cantidadVotantes];
-	//Lleno los votantes con los inputs
-	poblarVotantes(arrVot, cantidadVotantes, cantidadListas);
-	//Muestro
-	mostrarVotantes(arrVot, cantidadVotantes);
-
 	//Procesar Votos
 	int votBlanco=0;
 	int votNulo=0;
-	analizarVotantes(arrVot, arrListas, cantidadVotantes, cantidadListas, &votBlanco, &votNulo);
-	
-	
 	int arrBancasPorLista[CANTIDADBANCAS][2];
-	//Recorro el array de listas, e itero sobre las bancas, buscando los X mayores (donde X es CANTIDADBANCAS)
-	analizarBancas(arrListas, cantidadListas, arrBancasPorLista);
-	system("pause");
+
+	int opcionMenu;
+	while(true){
+		opcionMenu = menu();
+	switch(opcionMenu){
+		case 0:
+			return 0;
+		break;
+		case 1:
+			poblarListas(arrListas, cantidadListas);
+			//Muestro las listas
+			mostrarListas(arrListas, cantidadListas);
+			//Lleno los votantes con los inputs
+			poblarVotantes(arrVot, cantidadVotantes, cantidadListas);
+			//Muestro
+			mostrarVotantes(arrVot, cantidadVotantes);
+		break;
+		
+		case 2:
+			test_poblarListas(arrListas, cantidadListas);
+			//Muestro las listas
+			mostrarListas(arrListas, cantidadListas);
+			test_poblarVotantes(arrVot, cantidadVotantes, cantidadListas);
+			//Muestro
+			mostrarVotantes(arrVot, cantidadVotantes);
+		break;
+		
+		case 3:
+			analizarVotantes(arrVot, arrListas, cantidadVotantes, cantidadListas, &votBlanco, &votNulo);
+		break;
+		case 4:
+			//Recorro el array de listas, e itero sobre las bancas, buscando los X mayores (donde X es CANTIDADBANCAS)
+			analizarBancas(arrListas, cantidadListas, arrBancasPorLista, votBlanco, votNulo);
+		break;
+		
+	}	
+}
     return 0;
+}
+
+int menu (void){
+	unsigned short int opcion=-1;
+	cout<<"Menu Principal: \n"
+	"1 - Ingreso Manual de datos\n"
+	"2 - Ingreso Automatico de datos (TEST)\n"
+	"3 - Correr analizarVotantes (TEST)\n"
+	"4 - Correr analizarBancas (TEST)\n"
+	"0 - Salir\n\n\n";
+	
+
+	do{
+		cout<<"\r\t\t\t\t\t\r";
+		cout<<"Ingrese su opcion: ";
+		cin>>opcion;
+	}while(opcion < 0 || opcion > 4);
+	
+return opcion;	
 }
 
 /** @brief Completa las listas con input del usuario
@@ -82,14 +135,13 @@ int main()
  */
 void analizarVotantes(votante Vots[], listas arrListas[], int cVotantes, int cListas, int *vBlanco, int *vNulo){
 	int votoNormalizado;
-	int votosValidos;
-	
+	int votosValidos=0;
 	for(int i=0; i<cVotantes; i++){
 		if(Vots[i].voto==0){
-			vBlanco++;
+			++*vBlanco;
 		}else{
 		if(Vots[i].voto>cListas){
-			vNulo++;
+			++*vNulo;
 		}else{
 		votoNormalizado = Vots[i].voto - 1; //Normalizo el voto del Votante, restandole uno para que coincida con el Index de la Lista
 		arrListas[votoNormalizado].cantVotos++;
@@ -98,7 +150,7 @@ void analizarVotantes(votante Vots[], listas arrListas[], int cVotantes, int cLi
 		}
 	}
 	for(int j=0; j<cListas; j++){
-		arrListas[j].porcenVotos=round((arrListas[j].cantVotos*100)/votosValidos);
+		arrListas[j].porcenVotos=round((float)(arrListas[j].cantVotos*100)/votosValidos);
 		for(int k=0; k<CANTIDADBANCAS; k++){
 			arrListas[j].bancas[k]= round(arrListas[j].cantVotos/(k+1));
 		}
@@ -119,7 +171,7 @@ int pedirCantidadListas(){
 	return cListas;
 }
 
-/** @brief Pide la cantidaad de Votantes al usuario
+/** @brief Pide la cantidad de Votantes al usuario
  * 
  *  @param none
  * 
@@ -221,7 +273,7 @@ void mostrarVotantes(votante Vots[], int cVotantes)
  * 
  *  @return none
  */
-void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2])
+void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2], int vBlanco, int vNulo)
 {
 	int flag=0;
 		//inicializo la matriz de bancas por lista) [FILA 0 = Lista / FILA 1 = Cant Votos]
@@ -232,39 +284,97 @@ void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2])
 				arrBancasPorLista[z][w] = 0;
 			}
 		}
-	for (int i=0;i<cListas;i++) //Index de la Lista
-	{
-		for (int j=0;j<CANTIDADBANCAS;j++) //Recorro cada banca para esa lista
-		{
-			//Comparo con cada uno de los existentes [FILA 0 = Lista / FILA 1 = Cant Votos]
-			for (int k=0;k<CANTIDADBANCAS;k++)
-			{
-				if (!flag)
-				{
-					if (arrListas[i].bancas[j] > arrBancasPorLista[k][1])
-					{
-						arrBancasPorLista[k][0] = i;
-						arrBancasPorLista[k][1] = arrListas[i].bancas[j];
-						flag=1;
-					}
-				}
-			}
-			flag=0;
-		}				
-	}
-//Deberia imprimir algo aca para ver si esta bosta funciona, al primer intento;
 
-//Hacer esto bien.
+//Aca deberia ordenar las listas.
+ordenarListas(arrListas, cListas);
 
 cout<<"Bancas Por Lista: "<<endl;
 cout<<"Lista\t\tC. Votos\t\t\%Votos Validos\t\tPrimera Banca\t\tSegunda Banca\t\tTercera Banca\t\tCuarta Banca\t\tQuinta Banca"<<endl;
 
-		for  (int a=0;a<2;a++)
+		for  (int a=0;a<cListas;a++)
 		{
+			printf("%d - %s\t\t%d\t\t\t%d\%",arrListas[a].numLista, arrListas[a].nombreLista,arrListas[a].cantVotos, arrListas[a].porcenVotos);
+			//Ahora las 5 bancas, no?
 			for (int b=0;b<CANTIDADBANCAS;b++)
 			{
-				
-				printf("Lista\t\tC. Votos\t\t\%Votos Validos\t\t%11d\t\t%11d\t\t\n",a,b);
+				printf("\t\t%11d",arrListas[a].bancas[b]);
+			}
+			//el CRLF para la siguiente linea
+			cout<<endl;
+		}
+	cout<<"Votos en blanco: "<<vBlanco<<endl;
+	cout<<"Votos nulos: "<<vNulo<<endl;
+}
+
+/** @brief Completa las listas con inputs predefinidos, para Tests
+ * 
+ *  @param[in,out] arrListas Array de listas
+ *  @param[in] cListas Cantidad de listas
+ * 
+ *  @return none
+ */
+void test_poblarListas(listas arrListas[], int cListas)
+{
+	char nombreLista[8];
+	for(int i=0; i<cListas;i++){ //RECORRO LAS LISTAS PARA COMPLETARLAS
+		arrListas[i].cantVotos=0;
+		arrListas[i].numLista = i+1;
+		//Asigno el Nombre de la lista
+		sprintf(nombreLista, "Lista %d", i+1);
+		strcpy(arrListas[i].nombreLista, nombreLista);
+		
+		for(int j=0; j<CANTIDADCANDIDATOS;j++){
+			arrListas[i].candidatos[j].numCandidato=j+1;
+			sprintf(arrListas[i].candidatos[j].nombreCandidato, "Candidato Random[%d][%d]",i,j);
+			
+		}
+	}
+}
+
+/** @brief Completa las listas de Votantes con valores aleatorios
+ * 
+ *  @param[in,out] arrVot Array de Votantes
+ *  @param[in] cVotantes Cantidad de Votantes
+ *  @param[in] cListas Cantidad de Listas
+ * 
+ *  @return 0
+ */
+int test_poblarVotantes(votante arrVot[], int cVotantes, int cListas)
+{
+	for(int i=0; i<cVotantes;i++){ //RECORRO LAS LISTAS PARA COMPLETARLAS
+		if (((double) rand() / (RAND_MAX)) >= 0.5)
+		{
+			arrVot[i].sexo='M';
+		}
+		else
+		{
+			arrVot[i].sexo='F';
+		}
+		arrVot[i].edad = (rand()%80) +16;
+		arrVot[i].voto = rand() % (cListas+1+TESTVOTOSNULOS);
+	}
+	return 0;
+}
+/** @brief Ordena el array de Listas (BubbleSort), por cantidad de votos
+ * 
+ *  @param[in,out] arrListas Array de Listas
+ *  @param[in] cListas Cantidad de Listas
+ * 
+ *  @return 0
+ */
+void ordenarListas(listas arrListas[], int cListas){
+	listas temp;
+	for(int i=0;i<cListas;i++)
+	{
+		for(int j=i+1;j<cListas;j++)
+		{
+			if(arrListas[i].cantVotos < arrListas[j].cantVotos)
+			{
+				temp = arrListas[i];
+				arrListas[i] = arrListas[j];
+				arrListas[j] = temp;
 			}
 		}
+	}
+
 }
