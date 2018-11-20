@@ -1,0 +1,10 @@
+# LISTA | CANDIDATO | TITULARIDAD
+1, "Verde 1", TRUE
+1, "Verde 2", TRUE
+1, "Verde 3", FALSE
+2, "Azul 1", TRUE
+2, "Azul 2", TRUE
+2, "Azul 3", FALSE
+3, "Rojo 1", TRUE
+3, "Rojo 2", TRUE
+3, "Rojo 3", FALSE
