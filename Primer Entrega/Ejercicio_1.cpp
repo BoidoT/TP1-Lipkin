@@ -59,7 +59,7 @@ void actualizarVotos(listas arrListas[], int cListas, votante Vots[], int cVotan
 void cargarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas, int votosBlanco, int votosNulo);
 void mostrarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas);
 void asignarBancas(bancas bancasAsignadas[], int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas);
-void insertarOrdenadoBancas(bancas bancasAsignadas[], bancas bancaAux);
+void insertarOrdenadoBancas(bancas bancasAsignadas[], bancas bancaAux, int posicionIngresar);
 
 void ordenarListas(listas arrListas[], int cListas); //Una vez que llamo esta funcion, pierdo el orden por defecto
 
@@ -188,19 +188,25 @@ void asignarBancas(bancas bancasAsignadas[], int matrizBancas[][CANTIDADBANCAS],
 		  		if(bancasAsignadas[k].valor<matrizBancas[i][j]){
 		  			bancaAux.valor = matrizBancas[i][j];
 		  			bancaAux.numLista = j+1;
-		  			insertarOrdenadoBancas(bancasAsignadas, bancaAux);
+		  			insertarOrdenadoBancas(bancasAsignadas, bancaAux, k);
+		  			break;
 		  		}
 		  	}
 		}
 	}
 	for(int j=0; j<CANTIDADBANCAS; j++){
+		cout << bancasAsignadas[j].valor << " | " << bancasAsignadas[j].numLista;
 		arrListas[bancasAsignadas[j].numLista].cantidadBancasAsignadas+=1; //Cargo las bancas que determiné en el paso anterior a mi array de Listas.
 	}
 	return;
 }
 
-void insertarOrdenadoBancas(bancas bancasAsignadas[], bancas bancaAux){
+void insertarOrdenadoBancas(bancas bancasAsignadas[], bancas bancaAux, int posicionIngresar){
 	//TODO: Deberia insertar ordenadamente el bancaAux en el array bancasAsignadas
+	for(int i=CANTIDADBANCAS-1; i>posicionIngresar;i--){
+		bancasAsignadas[i]=bancasAsignadas[i-1];
+	}
+	bancasAsignadas[posicionIngresar]=bancaAux;
  return;
 }
 
@@ -209,7 +215,7 @@ void mostrarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], 
 	for (int k = 0; k<CANTIDADBANCAS; k++){
 		cout << "["<<k+1<<"] Banca \t| ";
 	}
-	cout << "Ganan: |" <<endl;
+	cout << "Ganan:|" <<endl;
 	//TODO: IMPORTANTE! Falta "no contar" aquellas listas con menos del 3% de los votos.
 	for(int i=0; i<cListas;i++){
 		cout<<arrListas[i].numLista<<". "<<arrListas[i].nombreLista<< "\t\t| " << arrListas[i].cantVotos;
