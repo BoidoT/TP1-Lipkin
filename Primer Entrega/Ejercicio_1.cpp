@@ -5,8 +5,8 @@
 
 using namespace std;
 /* DEFINICION DE CONSTANTES */
-#define CANTIDADCANDIDATOS 2
-#define CANTIDADBANCAS 3
+#define CANTIDADCANDIDATOS 1
+#define CANTIDADBANCAS 4
 
 /* DEFINICION DE STRUCTS */
 struct listaCandidato{
@@ -25,6 +25,10 @@ struct listas{
 	int cantVotos;
 	int porcVotos;
 	int cantidadBancasAsignadas;
+	int votosHasta18;
+	int votosHasta30;
+	int votosHasta50;
+	int votosMas50;
 };
  
 struct votante{
@@ -57,11 +61,13 @@ void analizarBancas(listas arrListas[], int cListas, int arrBancasPorLista[][2],
 
 void actualizarVotos(listas arrListas[], int cListas, votante Vots[], int cVotantes, int &votosBlanco, int &votosNulo);
 void cargarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas, int votosBlanco, int votosNulo);
-void mostrarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas);
+void mostrarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas, int votosBlanco, int votosNulo);
 void asignarBancas(bancas bancasAsignadas[], int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas);
 void insertarOrdenadoBancas(bancas bancasAsignadas[], bancas bancaAux, int posicionIngresar);
 
 void ordenarListas(listas arrListas[], int cListas); //Una vez que llamo esta funcion, pierdo el orden por defecto
+
+void mostrarListasVotantes(listas arrListas[], int cListas);
 
 void pausa(const char *);
 
@@ -103,6 +109,8 @@ int opcionMenu;
 					cantidadVotantes = pedirCantidadVotantes();
 					arrVot = new votante[cantidadVotantes];
 					poblarVotantes(arrVot, cantidadVotantes, cantidadListas);
+					actualizarVotos(arrListas, cantidadListas, arrVot, cantidadVotantes, vBlanco, vNulo);
+					ordenarListas(arrListas, cantidadListas);
 					votantesCargados = true;
 				}else{
 					cout << "Aun no se han cargado las listas" << endl;
@@ -114,13 +122,16 @@ int opcionMenu;
 			case 5:{
 				int matrizBancas[cantidadListas][CANTIDADBANCAS];
 				bancas bancasAsignadas[CANTIDADBANCAS]; //Utilizando la matriz, asigno el valor y la lista de cada banca
-				actualizarVotos(arrListas, cantidadListas, arrVot, cantidadVotantes, vBlanco, vNulo);
+				//actualizarVotos(arrListas, cantidadListas, arrVot, cantidadVotantes, vBlanco, vNulo);
+				//ordenarListas(arrListas, cantidadListas);
 				cargarMatrizBancas(matrizBancas, arrListas, cantidadListas, vBlanco, vNulo);
 				asignarBancas(bancasAsignadas, matrizBancas, arrListas, cantidadListas);
-				mostrarMatrizBancas(matrizBancas, arrListas, cantidadListas);
+				mostrarMatrizBancas(matrizBancas, arrListas, cantidadListas, vBlanco, vNulo);
 				//cout << "Votos en blanco: "<< vBlanco << " | Votos Nulos: " <<vNulo <<endl;
-				break;
-			}
+			} break;
+			case 6:
+				mostrarListasVotantes(arrListas, cantidadListas);
+			break;
 			default:
 				//
 			break;
@@ -152,25 +163,23 @@ return opcion;
 
 
 
-void actualizarVotos(listas arrListas[], int cListas, votante Vots[], int cVotantes, int &votosBlanco, int &votosNulo){
-	for(int i=0; i<cVotantes;i++){ //RECORRO VOTANTES
-		if(Vots[i].voto > 0 && Vots[i].voto <= cListas){
-			arrListas[Vots[i].voto-1].cantVotos+=1;
-		}else{
-			if(Vots[i].voto == 0){
-				votosBlanco+=1;
-			}else{
-				votosNulo+=1;
-			}
-		}
-	}
-	return;
-}
+
+
+
+
+
+
+
+
 
 void cargarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas, int votosBlanco, int votosNulo){
 	for(int i=0; i<cListas;i++){ //RECORRO LAS LISTAS PARA MOSTRARLAS
 		for(int j=0; j<CANTIDADBANCAS; j++){
-		  matrizBancas[i][j] = arrListas[i].cantVotos/(j+1);
+		  	if (arrListas[i].porcVotos < 3) {
+		  		matrizBancas[i][j] = 0;
+		  	}else{
+		  		matrizBancas[i][j] = round(arrListas[i].cantVotos/(j+1));
+			}
 		}
 	}
 	return;
@@ -178,28 +187,30 @@ void cargarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], i
 
 void asignarBancas(bancas bancasAsignadas[], int matrizBancas[][CANTIDADBANCAS], listas arrListas[], int cListas){
 	bancas bancaAux;
+	for(int k=0; k<cListas; k++) arrListas[k].cantidadBancasAsignadas=0; //Vacio mis bancas asignadas
+
 	for(int j=0; j<CANTIDADBANCAS; j++){
 		bancasAsignadas[j].valor=matrizBancas[0][j];
-		bancasAsignadas[j].numLista=0;
+		bancasAsignadas[j].numLista=1;
 	}
-	for(int i=1; i<cListas;i++){ 
+	for(int i=1; i<cListas;i++){
 		for(int j=0; j<CANTIDADBANCAS; j++){
 			for(int k=0; k<CANTIDADBANCAS; k++){
 		  		if(bancasAsignadas[k].valor<matrizBancas[i][j]){
 		  			bancaAux.valor = matrizBancas[i][j];
-		  			bancaAux.numLista = j+1;
+		  			bancaAux.numLista = i+1;
 		  			insertarOrdenadoBancas(bancasAsignadas, bancaAux, k);
 		  			break;
 		  		}
 		  	}
 		}
 	}
-	for(int j=0; j<CANTIDADBANCAS; j++){
-		cout << bancasAsignadas[j].valor << " | " << bancasAsignadas[j].numLista;
-		arrListas[bancasAsignadas[j].numLista].cantidadBancasAsignadas+=1; //Cargo las bancas que determiné en el paso anterior a mi array de Listas.
+	for(int k=0; k<CANTIDADBANCAS; k++){
+		//cout << bancasAsignadas[k].valor << " | " << bancasAsignadas[k].numLista;
+		arrListas[bancasAsignadas[k].numLista-1].cantidadBancasAsignadas+=1; //Cargo las bancas que determiné en el paso anterior a mi array de Listas.
 	}
 	return;
-}
+} 
 
 void insertarOrdenadoBancas(bancas bancasAsignadas[], bancas bancaAux, int posicionIngresar){
 	//TODO: Deberia insertar ordenadamente el bancaAux en el array bancasAsignadas
@@ -210,22 +221,35 @@ void insertarOrdenadoBancas(bancas bancasAsignadas[], bancas bancaAux, int posic
  return;
 }
 
-void mostrarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas){
-	cout<<"Listas\t\t| Cant de Votos |"; //TODO: Falta agregar el porcentaje de votos
+void mostrarMatrizBancas(int matrizBancas[][CANTIDADBANCAS],listas arrListas[], int cListas, int votosBlanco, int votosNulo){
+	cout<<"Listas\t\t| Cant de Votos \t| Porc votos validos \t| "; //TODO: Falta agregar el porcentaje de votos
 	for (int k = 0; k<CANTIDADBANCAS; k++){
 		cout << "["<<k+1<<"] Banca \t| ";
 	}
-	cout << "Ganan:|" <<endl;
+	cout << "Ganan: \t|" <<endl;
 	//TODO: IMPORTANTE! Falta "no contar" aquellas listas con menos del 3% de los votos.
 	for(int i=0; i<cListas;i++){
-		cout<<arrListas[i].numLista<<". "<<arrListas[i].nombreLista<< "\t\t| " << arrListas[i].cantVotos;
+		cout<<arrListas[i].numLista<<". "<<arrListas[i].nombreLista<< "\t\t| " << arrListas[i].cantVotos << " \t\t\t| " << arrListas[i].porcVotos << "% \t\t\t| ";
 		for(int j=0; j<CANTIDADBANCAS; j++){
-		  cout << "\t\t| " <<matrizBancas[i][j];
+		  cout <<matrizBancas[i][j] << " \t\t| ";
 		}
-		cout << "\t\t| " <<arrListas[i].cantidadBancasAsignadas <<"  \t|"<< endl;
+		cout << arrListas[i].cantidadBancasAsignadas <<" \t\t|"<< endl;
 	}
+	cout << "Votos Blanco \t| " << votosBlanco << " \t\t\t|" << endl;
+	cout << "Votos Nulos \t| " << votosNulo << " \t\t\t|" << endl;
 	return;
 }
+
+void mostrarListasVotantes(listas arrListas[], int cListas){
+	cout << endl;
+	cout << "Nombre de Lista \t| Cantidad de Votos \t| (Hasta 18 anos) \t| (Hasta 30 anos) \t| (Hasta 50 anos) \t| (Mas de 50 anos) \t|" << endl;
+	for(int i=0; i<cListas;i++){ //RECORRO LAS LISTAS PARA MOSTRARLAS
+		cout<<arrListas[i].numLista<<". "<<arrListas[i].nombreLista<< " \t\t\t| " << arrListas[i].cantVotos <<" \t\t\t| "<< arrListas[i].votosHasta18<<" \t\t\t| "<<arrListas[i].votosHasta30<<" \t\t\t| "<<arrListas[i].votosHasta50<<" \t\t\t| "<<arrListas[i].votosMas50<<" \t\t\t|"<<endl;
+	}
+}
+
+
+
 
 
 
@@ -244,7 +268,12 @@ void poblarListas(listas arrListas[], int cListas)
 {
 	for(int i=0; i<cListas;i++){ //RECORRO LAS LISTAS PARA COMPLETARLAS
 		arrListas[i].cantVotos=0;
+		arrListas[i].porcVotos=0;
 		arrListas[i].cantidadBancasAsignadas=0;
+		arrListas[i].votosHasta18 = 0;
+		arrListas[i].votosHasta30 = 0;
+		arrListas[i].votosHasta50 = 0;
+		arrListas[i].votosMas50 = 0;
 		arrListas[i].numLista = i+1;
 		cout<<"Ingrese el nombre de la lista numero "<<i+1<<" (de "<<cListas<<"): ";
 		cin.getline(arrListas[i].nombreLista,sizeof(arrListas[i].nombreLista));
@@ -271,6 +300,28 @@ void mostrarListas(listas arrListas[], int cListas)
 	}
 	return;
 }
+
+void ordenarListas(listas arrListas[], int cListas){
+	listas temp;
+	for(int i=0;i<cListas;i++)
+	{
+		for(int j=i+1;j<cListas;j++)
+		{
+			if(arrListas[i].cantVotos < arrListas[j].cantVotos)
+			{
+				temp = arrListas[i];
+				arrListas[i] = arrListas[j];
+				arrListas[j] = temp;
+			}
+		}
+	}
+
+}
+
+
+
+
+
 
 
 
@@ -305,6 +356,51 @@ void mostrarVotantes(votante Vots[], int cVotantes)
 	}
 	
 }
+
+void actualizarVotos(listas arrListas[], int cListas, votante Vots[], int cVotantes, int &votosBlanco, int &votosNulo){
+	int totalVotosValidos = 0;
+	votosBlanco=0;
+	votosNulo=0;
+	for(int j=0; j<cListas; j++){
+		arrListas[j].votosHasta18 = 0;
+		arrListas[j].votosHasta30 = 0;
+		arrListas[j].votosHasta50 = 0;
+		arrListas[j].votosMas50 = 0;
+		arrListas[j].cantVotos = 0; //Vacio mi cantidad de Votos actual
+	} 
+
+	for(int i=0; i<cVotantes;i++){ //RECORRO VOTANTES
+		if(Vots[i].voto > 0 && Vots[i].voto <= cListas){
+			for(int k=0; k<cListas; k++){
+				if((Vots[i].voto)==arrListas[k].numLista){
+					if(Vots[i].edad <= 18) arrListas[k].votosHasta18+=1;
+					if(Vots[i].edad > 18 && Vots[i].edad <= 30) arrListas[k].votosHasta30+=1;
+					if(Vots[i].edad > 30 && Vots[i].edad <= 50) arrListas[k].votosHasta50+=1;
+					if(Vots[i].edad > 50) arrListas[k].votosMas50+=1;
+					arrListas[k].cantVotos+=1;
+					totalVotosValidos+=1;
+					break;
+				}
+			}
+		}else{
+			if(Vots[i].voto == 0){
+				votosBlanco+=1;
+			}else{
+				votosNulo+=1;
+			}
+		}
+	}
+	for(int j=0; j<cListas; j++){
+		arrListas[j].porcVotos = round((arrListas[j].cantVotos * 100) / totalVotosValidos);
+	}
+return;
+}
+
+
+
+
+
+
 
 
 
