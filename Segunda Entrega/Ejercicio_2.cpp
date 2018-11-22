@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstring>
-#include <time.h>
+#include <ctime>
 
 using namespace std;
 /* DEFINICION DE CONSTANTES */
@@ -31,27 +31,6 @@ struct listas{
 	int votosMas50;
 };
 
-
-struct dListas{
-	int numLista;
-	char nombreLista[30];
-	struct dCandidato *candidatos;
-	int cantVotos;
-	int porcVotos;
-	int cantidadBancasAsignadas;
-	int votosHasta18;
-	int votosHasta30;
-	int votosHasta50;
-	int votosMas50;
-    struct dListas *sig;
-};
-struct dCandidato{
-	int numCandidato;
-	char nombreCandidato[30];
-	bool titular;
-    struct dCandidato *sig;
-};	
-
 struct votante{
 	char sexo;
 	int edad;
@@ -65,8 +44,10 @@ struct bancas{
 
 /* DECLARACION DE FUNCIONES*/
 
-bool leerListas(dListas *pLista);
-bool leerVotantes();
+bool leerListas(listas arrListas[], int cListas);
+bool leerVotantes(votante Vots[], int cVotantes, int cListas);
+bool guardarArchivoListas(listas arrListas[], int cListas);
+bool guardarArchivoVotantes(votante Vots[], int cVotantes, int cListas);
 
 int pedirCantidadListas();
 int pedirCantidadVotantes();
@@ -94,6 +75,8 @@ void pausa(const char *);
 
 int menu (bool, bool);
 
+long filesize(const char *file);
+
 int main() 
 {
 bool listasCargadas = false;
@@ -105,9 +88,23 @@ int vNulo = 0;
 //CARGAR LISTAS DESDE LOS ARCHIVOS.
 //CARGAR VOTANTES DESDE LOS ARCHIVOS.
 
-listas *arrListas;
-votante *arrVot;
-dListas *listaDinamica = NULL;
+
+
+listas *arrListas = NULL;
+votante *arrVot = NULL;
+
+//Fijarse si los archivos Existen, en caso de que si, cargarlos.
+listasCargadas = (filesize("listas.bin") > 0) ? true : false;
+if (listasCargadas)
+{
+	//Leer Listas deberia cargar dentro de si misma, los candidatos.
+	int cantidadListas = filesize("listas.bin")/sizeof(struct listas);
+	cout<<"Cantidad de listas a Leer: "<<cantidadListas<<endl;
+	arrListas = new listas[cantidadListas];
+	leerListas(arrListas, cantidadListas);
+	//leerVotantes(arrVot, filesize("votantes.bin")/sizeof(struct votante), cantidadListas);
+}
+
 int opcionMenu;
 	while(true){
 		opcionMenu = menu(listasCargadas, votantesCargados);
@@ -121,6 +118,7 @@ int opcionMenu;
 				cantidadListas = pedirCantidadListas();
 				arrListas = new listas[cantidadListas];
 				poblarListas(arrListas, cantidadListas);
+				guardarArchivoListas(arrListas, cantidadListas);
 				listasCargadas = true;
 			break;
 			case 2:
@@ -133,6 +131,9 @@ int opcionMenu;
 					poblarVotantes(arrVot, cantidadVotantes, cantidadListas);
 					actualizarVotos(arrListas, cantidadListas, arrVot, cantidadVotantes, vBlanco, vNulo);
 					ordenarListas(arrListas, cantidadListas);
+					//Por que guardar otra vez? Por que aca se actualizaron las variables de los structs.
+					guardarArchivoListas(arrListas, cantidadListas);
+					guardarArchivoVotantes(arrVot, cantidadVotantes, cantidadListas);
 					votantesCargados = true;
 				}else{
 					cout << "Aun no se han cargado las listas" << endl;
@@ -155,7 +156,7 @@ int opcionMenu;
 				mostrarListasVotantes(arrListas, cantidadListas);
 			break;
             case 7:
-				leerListas(listaDinamica);
+				//leerListas(listaDinamica);
 			break;
 			default:
 				//
@@ -301,21 +302,23 @@ void poblarListas(listas arrListas[], int cListas)
 		arrListas[i].votosMas50 = 0;
 		arrListas[i].numLista = i+1;
 		cout<<"Ingrese el nombre de la lista numero "<<i+1<<" (de "<<cListas<<"): ";
-		cin.getline(arrListas[i].nombreLista,sizeof(arrListas[i].nombreLista));
+		cin.getline(arrListas[i].nombreLista,30);
 		for(int j=0; j<CANTIDADCANDIDATOS;j++){
 			arrListas[i].candidatos[j].numCandidato=j+1;
 			cout<<"Ingrese al candidato numero  "<<j+1<<" (de "<<CANTIDADCANDIDATOS<<"): ";
-			cin.getline(arrListas[i].candidatos[j].nombreCandidato,sizeof(arrListas[i].candidatos[j].nombreCandidato));
+			cin.getline(arrListas[i].candidatos[j].nombreCandidato,30);
+			arrListas[i].candidatos[j].titular = false;
 		}
 	}
 	//TODO: Guardar listas en un archivo binario
+	guardarArchivoListas(arrListas, cListas);
 	pausa ("\nListas cargadas, presione una tecla para volver al menu principal");
 	return;
 }
 
 void mostrarListas(listas arrListas[], int cListas)
 {	
-	cout << endl;
+	cout <<"mostrando Listas: " <<endl;
 	for(int i=0; i<cListas;i++){ //RECORRO LAS LISTAS PARA MOSTRARLAS
 		cout<<arrListas[i].numLista<<". "<<arrListas[i].nombreLista<< " | Cantidad de Votos: " << arrListas[i].cantVotos <<endl;
 		cout<<"		Candidatos:"<<endl;
@@ -422,94 +425,82 @@ return;
 }
 
 
+//Funcion para calcular el tamaño del archivo.
+//Puede fallar dependiendo de la implementacion de las librerias. Pero, deberia funcionar en WIN32
+long filesize(const char *file)
+{
+	FILE *f = fopen(file, "rb");
+	if(!f) return -1;
+	
+
+	fseek(f, 0, SEEK_END); // seek to end of file
+	long size = ftell(f); // get current file pointer
+	fseek(f, 0, SEEK_SET); // seek back to beginning of file
+	fclose(f);
+
+	return size;
+}
 
 
-
-
-
-
-
-
-
-
-
-bool leerListas(dListas *pLista){
-    dListas *pAux = pLista;
-    char tmpRead [150];
-    char *splitString;
-    short int count=0;
+bool guardarArchivoListas(listas arrListas[], int cListas){
 	FILE *f;
-	f = fopen("listas.csv", "r");
+	
+	f = fopen("listas.bin", "wb");
+
 	if(!f){
 		return false;
 	}
-    //Trato de leer
-    fgets(tmpRead , 150 , f);
-	while(!feof(f)){
-        //Si la lectura no fue nula
-        if (tmpRead != NULL)
-        {
-            if(tmpRead[0] == '#')
-            {
-                cout<<"Comment Encontrado"<<endl;
-                continue;
-            }
-            //Creo el struct en memoria y lo inicializo.
-            dListas *aux = new dListas;
-            aux->porcVotos=0;
-            aux->cantidadBancasAsignadas=0;
-            aux->votosHasta18 = 0;
-            aux->votosHasta30 = 0;
-            aux->votosHasta50 = 0;
-            //Corto la linea en los delimiters
-            splitString = strtok(tmpRead, ",");
-            //Aca voy asignando las variables.
-            aux->numLista=atoi(splitString);
-            splitString = strtok (NULL, ",");
-            strcpy(aux->nombreLista, splitString);
-            //Ahora, lo inserto en la lista de listas(Valga la redundancia, no?)
-            if(pAux == NULL)
-            {
-                pAux = aux;
-            }
-            else
-            {
-                while(pAux->sig != NULL)
-                {
-                    pAux = pAux->sig;
-                }
-                //Llego al ultimo elemento
-                pAux->sig = aux;
-            }
-            count++;
-        }
-    //Vuelvo a leer
-    fgets(tmpRead , 150 , f);
+	
+	for(int i=0; i<cListas;i++)
+	{
+		fwrite(&arrListas[i],sizeof(struct listas),1,f);
 	}
-    cout<<&pLista;
-    cout<<&pAux;
+	fclose(f);
 	return true;
 }
-/*
-		arrListas[i].numLista = i+1;
-		cout<<"Ingrese el nombre de la lista numero "<<i+1<<" (de "<<cListas<<"): ";
-		cin.getline(arrListas[i].nombreLista,sizeof(arrListas[i].nombreLista));
-		for(int j=0; j<CANTIDADCANDIDATOS;j++){
-			arrListas[i].candidatos[j].numCandidato=j+1;
-			cout<<"Ingrese al candidato numero  "<<j+1<<" (de "<<CANTIDADCANDIDATOS<<"): ";
-			cin.getline(arrListas[i].candidatos[j].nombreCandidato,sizeof(arrListas[i].candidatos[j].nombreCandidato));
-		}
-*/
-bool leerVotantes(){
-	FILE *f;
-	f = fopen("candidatos.csv", "r");
+
+bool guardarArchivoVotantes(votante Vots[], int cVotantes, int cListas){
+	//TODO
+	return true;
+}
+
+
+//Tendria que pasarle el array ya creado.
+bool leerListas(listas arrListas[], int cListas){
+	listas aux;
+    FILE *f;
+	cout<<"Abriendo Listas..."<<endl;
+	f = fopen("listas.bin", "rb");
 	if(!f){
 		return false;
 	}
+	
+	for(int i=0; i<cListas;i++){
+		cout<<"Leyendo Dato: "<<i<<endl;
+		fread(&arrListas[i], sizeof(struct listas), 1, f);
+	}
+	cout<<"Leidos: "<<cListas<<" registros de Listas."<<endl;
+	fclose(f);
+	return true;
+}
 
+//TODO:
+bool leerVotantes(votante Vots[], int cVotantes, int cListas){
+	votante aux;
+    FILE *f;
+	short int count = 0;
+
+	f = fopen("votantes.bin", "rb");
+	if(!f){
+		return false;
+	}
+	
 	do{
-
+		fread(&aux, sizeof(aux), 1, f);
+		Vots[count] = aux;
+		count++;
 	}while(!feof(f));
+	cout<<"Leidos: "<<count<<" registros de Votantes."<<endl;
 	return true;
 }
 
@@ -517,3 +508,4 @@ void pausa(const char *msg){
   cout << msg << endl;
   getchar();
 }
+
