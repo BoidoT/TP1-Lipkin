@@ -102,7 +102,14 @@ if (listasCargadas)
 	cout<<"Cantidad de listas a Leer: "<<cantidadListas<<endl;
 	arrListas = new listas[cantidadListas];
 	leerListas(arrListas, cantidadListas);
-	//leerVotantes(arrVot, filesize("votantes.bin")/sizeof(struct votante), cantidadListas);
+	if (filesize("votantes.bin") > 0)
+	{
+		cantidadVotantes = filesize("votantes.bin")/sizeof(struct votante);
+		arrVot = new votante[cantidadVotantes];
+		cout<<"Cantidad de Votantes a leer: "<<cantidadVotantes<<endl;
+		leerVotantes(arrVot, cantidadVotantes, cantidadListas);
+	}
+	//
 }
 
 int opcionMenu;
@@ -133,7 +140,7 @@ int opcionMenu;
 					ordenarListas(arrListas, cantidadListas);
 					//Por que guardar otra vez? Por que aca se actualizaron las variables de los structs.
 					guardarArchivoListas(arrListas, cantidadListas);
-					//guardarArchivoVotantes(arrVot, cantidadVotantes, cantidadListas);
+					guardarArchivoVotantes(arrVot, cantidadVotantes, cantidadListas);
 					votantesCargados = true;
 				}else{
 					cout << "Aun no se han cargado las listas" << endl;
@@ -458,7 +465,19 @@ bool guardarArchivoListas(listas arrListas[], int cListas){
 }
 
 bool guardarArchivoVotantes(votante Vots[], int cVotantes, int cListas){
-	//TODO
+		FILE *f;
+	
+	f = fopen("votantes.bin", "wb");
+
+	if(!f){
+		return false;
+	}
+	
+	for(int i=0; i<cVotantes;i++)
+	{
+		fwrite(&Vots[i],sizeof(struct votante),1,f);
+	}
+	fclose(f);
 	return true;
 }
 
@@ -467,14 +486,12 @@ bool guardarArchivoVotantes(votante Vots[], int cVotantes, int cListas){
 bool leerListas(listas arrListas[], int cListas){
 	listas aux;
     FILE *f;
-	cout<<"Abriendo Listas..."<<endl;
 	f = fopen("listas.bin", "rb");
 	if(!f){
 		return false;
 	}
 	
 	for(int i=0; i<cListas;i++){
-		cout<<"Leyendo Dato: "<<i<<endl;
 		fread(&arrListas[i], sizeof(struct listas), 1, f);
 	}
 	cout<<"Leidos: "<<cListas<<" registros de Listas."<<endl;
@@ -486,19 +503,17 @@ bool leerListas(listas arrListas[], int cListas){
 bool leerVotantes(votante Vots[], int cVotantes, int cListas){
 	votante aux;
     FILE *f;
-	short int count = 0;
+	
 
 	f = fopen("votantes.bin", "rb");
 	if(!f){
 		return false;
 	}
 	
-	do{
-		fread(&aux, sizeof(aux), 1, f);
-		Vots[count] = aux;
-		count++;
-	}while(!feof(f));
-	cout<<"Leidos: "<<count<<" registros de Votantes."<<endl;
+	for(int i=0; i<cVotantes;i++){
+		fread(&Vots[i], sizeof(struct votante), 1, f);
+	}
+	cout<<"Leidos: "<<cVotantes<<" registros de Votantes."<<endl;
 	return true;
 }
 
