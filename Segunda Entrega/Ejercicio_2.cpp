@@ -98,7 +98,7 @@ listasCargadas = (filesize("listas.bin") > 0) ? true : false;
 if (listasCargadas)
 {
 	//Leer Listas deberia cargar dentro de si misma, los candidatos.
-	int cantidadListas = filesize("listas.bin")/sizeof(struct listas);
+	cantidadListas = filesize("listas.bin")/sizeof(struct listas);
 	cout<<"Cantidad de listas a Leer: "<<cantidadListas<<endl;
 	arrListas = new listas[cantidadListas];
 	leerListas(arrListas, cantidadListas);
@@ -133,7 +133,7 @@ int opcionMenu;
 					ordenarListas(arrListas, cantidadListas);
 					//Por que guardar otra vez? Por que aca se actualizaron las variables de los structs.
 					guardarArchivoListas(arrListas, cantidadListas);
-					guardarArchivoVotantes(arrVot, cantidadVotantes, cantidadListas);
+					//guardarArchivoVotantes(arrVot, cantidadVotantes, cantidadListas);
 					votantesCargados = true;
 				}else{
 					cout << "Aun no se han cargado las listas" << endl;
@@ -274,14 +274,6 @@ void mostrarListasVotantes(listas arrListas[], int cListas){
 	}
 }
 
-
-
-
-
-
-
-
-
 int pedirCantidadListas(){
 	int cListas = 0;
 	cout<<"\n\nIngrese cantidad de Listas: ";
@@ -292,6 +284,7 @@ int pedirCantidadListas(){
 
 void poblarListas(listas arrListas[], int cListas)
 {
+	char *in;
 	for(int i=0; i<cListas;i++){ //RECORRO LAS LISTAS PARA COMPLETARLAS
 		arrListas[i].cantVotos=0;
 		arrListas[i].porcVotos=0;
@@ -302,11 +295,16 @@ void poblarListas(listas arrListas[], int cListas)
 		arrListas[i].votosMas50 = 0;
 		arrListas[i].numLista = i+1;
 		cout<<"Ingrese el nombre de la lista numero "<<i+1<<" (de "<<cListas<<"): ";
-		cin.getline(arrListas[i].nombreLista,30);
+		//para mi, el tema esta aca. ERROR.
+		cin.getline(in,30);
+		strcpy(arrListas[i].nombreLista, in);
+		
 		for(int j=0; j<CANTIDADCANDIDATOS;j++){
 			arrListas[i].candidatos[j].numCandidato=j+1;
 			cout<<"Ingrese al candidato numero  "<<j+1<<" (de "<<CANTIDADCANDIDATOS<<"): ";
-			cin.getline(arrListas[i].candidatos[j].nombreCandidato,30);
+			
+			cin.getline(in,30);
+			strcpy(arrListas[i].candidatos[j].nombreCandidato, in);
 			arrListas[i].candidatos[j].titular = false;
 		}
 	}
