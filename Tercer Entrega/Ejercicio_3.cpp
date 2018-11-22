@@ -16,6 +16,10 @@ struct candidato{
 	bool titular;
 };	
 
+struct lCandidato{
+	candidato dato;
+
+}
 struct listas{
 	int numLista;
 	char nombreLista[30];
@@ -92,17 +96,17 @@ listas *arrListas = NULL;
 votante *arrVot = NULL;
 
 //Fijarse si los archivos Existen, en caso de que si, cargarlos.
-listasCargadas = (filesize("listas.bin") > 0) ? true : false;
+listasCargadas = (filesize("..\\Segunda Entrega\\listas.bin") > 0) ? true : false;
 if (listasCargadas)
 {
 	//Leer Listas deberia cargar dentro de si misma, los candidatos.
-	cantidadListas = filesize("listas.bin")/sizeof(struct listas);
+	cantidadListas = filesize("..\\Segunda Entrega\\listas.bin")/sizeof(struct listas);
 	cout<<"Cantidad de listas leidas: "<<cantidadListas<<endl;
 	arrListas = new listas[cantidadListas];
 	leerListas(arrListas, cantidadListas);
-	if (filesize("votantes.bin") > 0)
+	if (filesize("..\\Segunda Entrega\\votantes.bin") > 0)
 	{
-		cantidadVotantes = filesize("votantes.bin")/sizeof(struct votante);
+		cantidadVotantes = filesize("..\\Segunda Entrega\\votantes.bin")/sizeof(struct votante);
 		arrVot = new votante[cantidadVotantes];
 		cout<<"Cantidad de Votantes leidos: "<<cantidadVotantes<<endl;
 		leerVotantes(arrVot, cantidadVotantes, cantidadListas);
@@ -113,6 +117,8 @@ if (listasCargadas)
 	//
 }else{
 	cout<<"No se han encontrado listas cargadas"<<endl;
+	pausa("Finalizando la ejecucion");
+	return;
 }
 
 int opcionMenu;
@@ -125,16 +131,9 @@ int opcionMenu;
 				return 0;
 			break;
 			case 1:
-				cantidadListas = pedirCantidadListas();
-				arrListas = new listas[cantidadListas];
-				poblarListas(arrListas, cantidadListas);
-				guardarArchivoListas(arrListas, cantidadListas);
-				listasCargadas = true;
-			break;
-			case 2:
 				mostrarListas(arrListas, cantidadListas);
-				break;
-			case 3:
+			break;
+			/*case 3:
 				if (listasCargadas){
 					cantidadVotantes = pedirCantidadVotantes();
 					arrVot = new votante[cantidadVotantes];
@@ -148,20 +147,23 @@ int opcionMenu;
 				}else{
 					cout << "Aun no se han cargado las listas" << endl;
 				}
-			break;
-			case 4:
+			break;*/
+			case 2:
 				mostrarVotantes(arrVot, cantidadVotantes);
 			break;
-			case 5:{
+			/*case 5:{
 				int matrizBancas[cantidadListas][CANTIDADBANCAS];
 				bancas bancasAsignadas[CANTIDADBANCAS]; //Utilizando la matriz, asigno el valor y la lista de cada banca
+				//actualizarVotos(arrListas, cantidadListas, arrVot, cantidadVotantes, vBlanco, vNulo);
+				//ordenarListas(arrListas, cantidadListas);
 				cargarMatrizBancas(matrizBancas, arrListas, cantidadListas, vBlanco, vNulo);
 				asignarBancas(bancasAsignadas, matrizBancas, arrListas, cantidadListas);
 				mostrarMatrizBancas(matrizBancas, arrListas, cantidadListas, vBlanco, vNulo);
+				//cout << "Votos en blanco: "<< vBlanco << " | Votos Nulos: " <<vNulo <<endl;
 			} break;
 			case 6:
 				mostrarListasVotantes(arrListas, cantidadListas);
-			break;
+			break;*/
 			default:
 				//
 			break;
@@ -174,9 +176,9 @@ int opcionMenu;
 int menu (bool listasCargadas, bool votantesCargados){
 	unsigned short int opcion=-1;
 	cout<<"\nMenu Principal: \n" <<
-	((listasCargadas) ? "\t1. Sobreescribir Listas\n" : "\t1. Cargar Listas\n") <<
+	//((listasCargadas) ? "\t1. Sobreescribir Listas\n" : "\t1. Cargar Listas\n") <<
 	"\t2. Mostrar Listas\n" <<
-	((votantesCargados) ? "\t3. Sobreescribir Votantes\n" : "\t3. Cargar Votantes\n") <<
+	//((votantesCargados) ? "\t3. Sobreescribir Votantes\n" : "\t3. Cargar Votantes\n") <<
 	"\t4. Mostrar Votantes\n"
 	"\t5. Mostrar Detalle Listas\n"
 	"\t6. Mostrar Detalle Votantes\n"
